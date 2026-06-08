@@ -11,7 +11,8 @@ router.post('/sms', handleInbound);
 async function handleInbound(req, res) {
   const params = { ...req.query, ...req.body };
   console.log('[webhook] inbound:', JSON.stringify(params));
-  const from = params.msisdn ? `+${params.msisdn}` : null;
+  const rawFrom = params.msisdn || params.from || null;
+  const from = rawFrom ? (rawFrom.startsWith('+') ? rawFrom : `+${rawFrom}`) : null;
   const body = (params.text || '').trim().toUpperCase();
 
   if (!from) return res.status(200).end();

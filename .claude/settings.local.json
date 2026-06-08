@@ -22,7 +22,9 @@
       "Bash(curl -s --max-time 30 -X POST http://localhost:3001/api/events -H 'Content-Type: application/json' -d '{\"name\":\"Wal Summit\",\"venue\":\"Gaylord CC\",\"exhibitor\":\"Walmart\",\"booth\":\"B101\",\"laborType\":\"Foreman\",\"laborCount\":1,\"installDates\":[{\"date\":\"2026-08-28\",\"time\":\"07:30\"},{\"date\":\"2026-09-02\",\"time\":\"17:00\"}],\"dismantleDates\":[{\"date\":\"2026-09-04\",\"time\":\"07:30\"},{\"date\":\"2026-09-05\",\"time\":\"07:30\"}]}')",
       "Bash(npm uninstall *)",
       "Bash(node -e ' *)",
-      "Bash(echo \"Exit: $?\")"
+      "Bash(echo \"Exit: $?\")",
+      "Bash(curl -s https://labor-production.up.railway.app/api/events)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
