@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { dispatchNext } from '../lib/dispatch.js';
+import { sendSms } from '../lib/sms.js';
 
 const router = Router();
 
@@ -39,12 +40,14 @@ async function handleInbound(req, res) {
     if (acceptedCount >= event.laborCount) {
       await prisma.event.update({ where: { id: assignment.eventId }, data: { status: 'staffed' } });
     }
+    await sendSms(from, 'Thank you for accepting the assignment. We\'ll see you soon!');
   } else if (body === 'NO') {
     await prisma.assignment.update({
       where: { id: assignment.id },
       data: { status: 'rejected', repliedAt: new Date() },
     });
     await dispatchNext(assignment.eventId);
+    await sendSms(from, 'Thanks for letting us know. We\'ll reach out for future opportunities.');
   }
 
   res.status(200).end();
