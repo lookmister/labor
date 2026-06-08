@@ -1,10 +1,3 @@
-import twilio from 'twilio';
-
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
 export function buildJobMessage(laborer, event) {
   const install = JSON.parse(event.installDates)
     .map((d) => `${d.date} @ ${d.time}`)
@@ -30,13 +23,26 @@ Reply YES to accept or NO to decline.`;
 }
 
 export async function sendSms(to, body) {
-  if (!process.env.TWILIO_ACCOUNT_SID || process.env.TWILIO_ACCOUNT_SID.startsWith('AC' + 'x')) {
+  if (!process.env.VONAGE_API_KEY) {
     console.log(`[SMS MOCK] To: ${to}\n${body}\n`);
-    return { sid: 'mock-' + Date.now() };
+    return { messageId: 'mock-' + Date.now() };
   }
-  return client.messages.create({
-    body,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to,
+
+  const params = new URLSearchParams({
+    api_key: process.env.VONAGE_API_KEY,
+    api_secret: process.env.VONAGE_API_SECRET,
+    to: to.replace('+', ''),
+    from: process.env.VONAGE_PHONE_NUMBER,
+    text: body,
   });
+
+  const res = await fetch(`https://rest.nexmo.com/sms/json?${params}`);
+  const data = await res.json();
+  const msg = data.messages[0];
+
+  if (msg.status !== '0') {
+    throw new Error(`Vonage error ${msg.status}: ${msg['error-text']}`);
+  }
+
+  return msg;
 }

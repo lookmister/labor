@@ -1,4 +1,8 @@
 import 'dotenv/config';
+// Fix SSL cert issue on macOS in dev — not needed in production (Railway handles certs)
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 import express from 'express';
 import cors from 'cors';
 import eventsRouter from './routes/events.js';

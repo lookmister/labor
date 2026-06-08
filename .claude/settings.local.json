@@ -13,7 +13,16 @@
       "Bash(python3 -m json.tool)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(curl -s -X POST http://localhost:3001/api/laborers -H 'Content-Type: application/json' -d '{\"name\":\"Josh\",\"phone\":\"+16198920160\",\"email\":\"josh@lookmister.com\",\"rate\":45,\"jobType\":\"Foreman\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/api/events -H 'Content-Type: application/json' -d '{\"name\":\"Test Show\",\"venue\":\"Gaylord CC\",\"exhibitor\":\"Walmart\",\"booth\":\"B101\",\"laborType\":\"Foreman\",\"laborCount\":1,\"installDates\":[{\"date\":\"2026-08-28\",\"time\":\"07:30\"}],\"dismantleDates\":[{\"date\":\"2026-09-04\",\"time\":\"07:30\"}]}')",
+      "Bash(curl -v -X POST http://localhost:3001/api/events -H 'Content-Type: application/json' -d '{\"name\":\"Test Show\",\"venue\":\"Gaylord CC\",\"laborType\":\"Foreman\",\"laborCount\":1,\"installDates\":[{\"date\":\"2026-08-28\",\"time\":\"07:30\"}],\"dismantleDates\":[{\"date\":\"2026-09-04\",\"time\":\"07:30\"}]}')",
+      "Bash(curl -s --max-time 30 -X POST http://localhost:3001/api/events -H 'Content-Type: application/json' -d '{\"name\":\"Wal Summit\",\"venue\":\"Gaylord CC\",\"exhibitor\":\"Walmart\",\"booth\":\"B101\",\"laborType\":\"Foreman\",\"laborCount\":1,\"installDates\":[{\"date\":\"2026-08-28\",\"time\":\"07:30\"},{\"date\":\"2026-09-02\",\"time\":\"17:00\"}],\"dismantleDates\":[{\"date\":\"2026-09-04\",\"time\":\"07:30\"},{\"date\":\"2026-09-05\",\"time\":\"07:30\"}]}')",
+      "Bash(npm uninstall *)",
+      "Bash(node -e ' *)",
+      "Bash(echo \"Exit: $?\")"
     ]
   }
 }
