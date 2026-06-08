@@ -41,11 +41,11 @@ export default function NewEventPage() {
     setForm((f) => ({ ...f, [section]: f[section].filter((_, i) => i !== index) }));
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e, dispatch = false) {
     e.preventDefault();
     setSaving(true);
     try {
-      const event = await api.createEvent(form);
+      const event = await api.createEvent({ ...form, dispatch });
       navigate(`/events/${event.id}`);
     } catch (err) {
       alert('Error creating event: ' + err.message);
@@ -121,8 +121,11 @@ export default function NewEventPage() {
           <DateSection label="Dismantle Dates & Times" section="dismantleDates" />
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Creating & Dispatching...' : 'Create & Dispatch'}
+            <button type="submit" className="btn btn-primary" disabled={saving} onClick={(e) => handleSubmit(e, true)}>
+              {saving ? 'Saving...' : 'Create & Dispatch'}
+            </button>
+            <button type="submit" className="btn btn-secondary" disabled={saving} onClick={(e) => handleSubmit(e, false)}>
+              Save Draft
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           </div>

@@ -7,22 +7,43 @@ const STATUS_COLOR = { pending: '#d97706', accepted: '#059669', rejected: '#dc26
 export default function EventDetailPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
+  const [dispatching, setDispatching] = useState(false);
 
   useEffect(() => {
     api.getEvent(id).then(setEvent);
   }, [id]);
+
+  async function handleDispatch() {
+    setDispatching(true);
+    try {
+      const updated = await api.dispatchEvent(id);
+      setEvent(updated);
+    } catch (err) {
+      alert('Error dispatching: ' + err.message);
+    } finally {
+      setDispatching(false);
+    }
+  }
 
   if (!event) return <p>Loading...</p>;
 
   const installDates = JSON.parse(event.installDates);
   const dismantleDates = JSON.parse(event.dismantleDates);
   const accepted = event.assignments.filter((a) => a.status === 'accepted');
+  const canDispatch = event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount);
 
   return (
     <div>
       <div className="page-header">
         <h1>{event.name}</h1>
-        <Link to="/" className="btn btn-secondary">← Back</Link>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {canDispatch && (
+            <button className="btn btn-primary" onClick={handleDispatch} disabled={dispatching}>
+              {dispatching ? 'Dispatching...' : '📤 Dispatch SMS'}
+            </button>
+          )}
+          <Link to="/" className="btn btn-secondary">← Back</Link>
+        </div>
       </div>
 
       <div className="card">
@@ -53,7 +74,11 @@ export default function EventDetailPage() {
 
       <div className="card">
         <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Dispatch Log</h2>
-        {event.assignments.length === 0 && <p style={{ color: '#888', fontSize: '0.875rem' }}>No dispatches yet.</p>}
+        {event.assignments.length === 0 && (
+          <p style={{ color: '#888', fontSize: '0.875rem' }}>
+            No dispatches yet. {event.status === 'draft' && 'Click "Dispatch SMS" to send texts to laborers.'}
+          </p>
+        )}
         {event.assignments.map((a) => (
           <div className="assignment-item" key={a.id}>
             <div>
