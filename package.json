@@ -1,0 +1,10 @@
+{
+  "name": "labor",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "setup": "npm install --prefix server && npm install --prefix client && npm run db:init --prefix server",
+    "db:init": "npm run db:push --prefix server"
+  }
+}

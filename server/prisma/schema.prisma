@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id             Int      @id @default(autoincrement())
+  name           String
+  venue          String
+  exhibitor      String?
+  booth          String?
+  installDates   String   // JSON array of {date, time} objects
+  dismantleDates String   // JSON array of {date, time} objects
+  laborType      String
+  laborCount     Int
+  status         String   @default("draft") // draft | dispatching | staffed
+  createdAt      DateTime @default(now())
+  assignments    Assignment[]
+}
+
+model Laborer {
+  id          Int      @id @default(autoincrement())
+  name        String
+  phone       String   @unique
+  email       String?
+  rate        Float
+  jobType     String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  assignments Assignment[]
+}
+
+model Assignment {
+  id         Int      @id @default(autoincrement())
+  eventId    Int
+  laborerId  Int
+  status     String   @default("pending") // pending | accepted | rejected
+  sentAt     DateTime @default(now())
+  repliedAt  DateTime?
+  event      Event    @relation(fields: [eventId], references: [id])
+  laborer    Laborer  @relation(fields: [laborerId], references: [id])
+}
