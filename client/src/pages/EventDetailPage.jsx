@@ -41,7 +41,7 @@ export default function EventDetailPage() {
   const installDates = JSON.parse(event.installDates);
   const dismantleDates = JSON.parse(event.dismantleDates);
   const accepted = event.assignments.filter((a) => a.status === 'accepted');
-  const canDispatch = event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount);
+  const canDispatch = isApproved && (event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount));
   const isApproved = event.approval === 'approved';
 
   return (

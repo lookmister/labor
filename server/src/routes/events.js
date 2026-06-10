@@ -56,6 +56,7 @@ router.post('/', async (req, res) => {
 router.post('/:id/dispatch', async (req, res) => {
   const event = await prisma.event.findUnique({ where: { id: Number(req.params.id) } });
   if (!event) return res.status(404).json({ error: 'Not found' });
+  if (event.approval !== 'approved') return res.status(403).json({ error: 'Event must be approved before dispatching.' });
 
   const acceptedCount = await prisma.assignment.count({
     where: { eventId: event.id, status: 'accepted' },

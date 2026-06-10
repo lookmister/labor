@@ -121,11 +121,12 @@ export default function NewEventPage() {
           <DateSection label="Dismantle Dates & Times" section="dismantleDates" />
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" disabled={saving} onClick={(e) => handleSubmit(e, true)}>
-              {saving ? 'Saving...' : 'Create & Dispatch'}
+            <button type="submit" className="btn btn-primary" disabled={saving} onClick={(e) => handleSubmit(e, false)}
+              title="Save as draft — approve the event first before dispatching">
+              {saving ? 'Saving...' : 'Create Event'}
             </button>
             <button type="submit" className="btn btn-secondary" disabled={saving} onClick={(e) => handleSubmit(e, false)}>
-              Save Draft
+              Save
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           </div>
