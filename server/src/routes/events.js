@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { dispatchNext } from '../lib/dispatch.js';
+import { dispatchNext, dispatchAll } from '../lib/dispatch.js';
 
 const router = Router();
 
@@ -62,11 +62,7 @@ router.post('/:id/dispatch', async (req, res) => {
   const acceptedCount = await prisma.assignment.count({
     where: { eventId: event.id, status: 'accepted' },
   });
-  const remaining = event.laborCount - acceptedCount;
-
-  for (let i = 0; i < remaining; i++) {
-    await dispatchNext(event.id);
-  }
+  await dispatchAll(event.id);
 
   const updated = await prisma.event.findUnique({
     where: { id: event.id },
