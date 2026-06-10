@@ -3,28 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { LABOR_TYPES, REGIONS } from '../constants.js';
 
-function emptyDate() {
-  return { date: '', time: '' };
-}
+function emptyDate() { return { date: '', time: '' }; }
+function emptyReq() { return { laborType: LABOR_TYPES[0], laborCount: 1 }; }
 
 export default function NewEventPage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: '',
-    venue: '',
-    exhibitor: '',
-    booth: '',
-    laborType: LABOR_TYPES[0],
-    laborCount: 1,
+    name: '', venue: '', exhibitor: '', booth: '',
     region: 'San Diego',
     installDates: [emptyDate()],
     dismantleDates: [emptyDate()],
+    requirements: [emptyReq()],
   });
 
-  function set(field, value) {
-    setForm((f) => ({ ...f, [field]: value }));
-  }
+  function set(field, value) { setForm((f) => ({ ...f, [field]: value })); }
 
   function updateDateRow(section, index, key, value) {
     setForm((f) => {
@@ -34,19 +27,24 @@ export default function NewEventPage() {
     });
   }
 
-  function addRow(section) {
-    setForm((f) => ({ ...f, [section]: [...f[section], emptyDate()] }));
-  }
+  function addDateRow(section) { setForm((f) => ({ ...f, [section]: [...f[section], emptyDate()] })); }
+  function removeDateRow(section, index) { setForm((f) => ({ ...f, [section]: f[section].filter((_, i) => i !== index) })); }
 
-  function removeRow(section, index) {
-    setForm((f) => ({ ...f, [section]: f[section].filter((_, i) => i !== index) }));
+  function updateReq(index, key, value) {
+    setForm((f) => {
+      const reqs = [...f.requirements];
+      reqs[index] = { ...reqs[index], [key]: value };
+      return { ...f, requirements: reqs };
+    });
   }
+  function addReq() { setForm((f) => ({ ...f, requirements: [...f.requirements, emptyReq()] })); }
+  function removeReq(index) { setForm((f) => ({ ...f, requirements: f.requirements.filter((_, i) => i !== index) })); }
 
-  async function handleSubmit(e, dispatch = false) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     try {
-      const event = await api.createEvent({ ...form, dispatch });
+      const event = await api.createEvent(form);
       navigate(`/events/${event.id}`);
     } catch (err) {
       alert('Error creating event: ' + err.message);
@@ -64,12 +62,12 @@ export default function NewEventPage() {
               <input type="date" value={row.date} onChange={(e) => updateDateRow(section, i, 'date', e.target.value)} />
               <input type="time" value={row.time} onChange={(e) => updateDateRow(section, i, 'time', e.target.value)} />
               {form[section].length > 1 && (
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => removeRow(section, i)}>✕</button>
+                <button type="button" className="btn btn-danger btn-sm" onClick={() => removeDateRow(section, i)}>✕</button>
               )}
             </div>
           ))}
         </div>
-        <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '0.5rem', width: 'fit-content' }} onClick={() => addRow(section)}>
+        <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '0.5rem', width: 'fit-content' }} onClick={() => addDateRow(section)}>
           + Add date
         </button>
       </div>
@@ -78,11 +76,9 @@ export default function NewEventPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <h1>New Event</h1>
-      </div>
+      <div className="page-header"><h1>New Event</h1></div>
       <div className="card">
-        <form onSubmit={(e) => handleSubmit(e, false)}>
+        <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
               <label>Show Name *</label>
@@ -93,7 +89,6 @@ export default function NewEventPage() {
               <input required value={form.venue} onChange={(e) => set('venue', e.target.value)} placeholder="e.g. Gaylord CC" />
             </div>
           </div>
-
           <div className="form-row">
             <div className="form-group">
               <label>Exhibitor</label>
@@ -104,36 +99,40 @@ export default function NewEventPage() {
               <input value={form.booth} onChange={(e) => set('booth', e.target.value)} />
             </div>
           </div>
+          <div className="form-group" style={{ maxWidth: 280 }}>
+            <label>Region *</label>
+            <select value={form.region} onChange={(e) => set('region', e.target.value)}>
+              {REGIONS.map((r) => <option key={r}>{r}</option>)}
+            </select>
+          </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Labor Type *</label>
-              <select value={form.laborType} onChange={(e) => set('laborType', e.target.value)}>
+          {/* Labor Requirements */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Staff Requirements</label>
+          </div>
+          {form.requirements.map((req, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px auto', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+              <select value={req.laborType} onChange={(e) => updateReq(i, 'laborType', e.target.value)}
+                style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}>
                 {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
               </select>
+              <input type="number" min="1" value={req.laborCount} onChange={(e) => updateReq(i, 'laborCount', Number(e.target.value))}
+                style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}
+                placeholder="# needed" />
+              {form.requirements.length > 1 && (
+                <button type="button" className="btn btn-danger btn-sm" onClick={() => removeReq(i)}>✕</button>
+              )}
             </div>
-            <div className="form-group">
-              <label>Number of Laborers *</label>
-              <input type="number" min="1" required value={form.laborCount} onChange={(e) => set('laborCount', Number(e.target.value))} />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Region *</label>
-              <select value={form.region} onChange={(e) => set('region', e.target.value)}>
-                {REGIONS.map((r) => <option key={r}>{r}</option>)}
-              </select>
-            </div>
-          </div>
+          ))}
+          <button type="button" className="btn btn-secondary btn-sm" style={{ marginBottom: '1rem', width: 'fit-content' }} onClick={addReq}>
+            + Add Staff Type
+          </button>
 
           <DateSection label="Install Dates & Times" section="installDates" />
           <DateSection label="Dismantle Dates & Times" section="dismantleDates" />
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Create Event'}
-            </button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Create Event'}</button>
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           </div>
         </form>

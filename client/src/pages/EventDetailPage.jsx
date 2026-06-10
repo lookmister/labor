@@ -10,9 +10,7 @@ export default function EventDetailPage() {
   const [dispatching, setDispatching] = useState(false);
   const [approving, setApproving] = useState(false);
 
-  useEffect(() => {
-    api.getEvent(id).then(setEvent);
-  }, [id]);
+  useEffect(() => { api.getEvent(id).then(setEvent); }, [id]);
 
   async function handleDispatch() {
     setDispatching(true);
@@ -28,38 +26,29 @@ export default function EventDetailPage() {
 
   async function handleApprove() {
     setApproving(true);
-    try {
-      const updated = await api.approveEvent(id);
-      setEvent(updated);
-    } finally {
-      setApproving(false);
-    }
+    try { setEvent(await api.approveEvent(id)); }
+    finally { setApproving(false); }
   }
 
   if (!event) return <p>Loading...</p>;
 
   const installDates = JSON.parse(event.installDates);
   const dismantleDates = JSON.parse(event.dismantleDates);
-  const accepted = event.assignments.filter((a) => a.status === 'accepted');
   const isApproved = (event.approval ?? 'pending') === 'approved';
-  const canDispatch = isApproved && (event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount));
+  const canDispatch = isApproved && event.status !== 'staffed';
 
   return (
     <div>
       <div className="page-header">
         <h1>{event.name}</h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {canDispatch && (
             <button className="btn btn-primary" onClick={handleDispatch} disabled={dispatching}>
               {dispatching ? 'Dispatching...' : '📤 Dispatch SMS'}
             </button>
           )}
-          <button
-            className="btn"
-            style={{ background: isApproved ? '#d1fae5' : '#fef3c7', color: isApproved ? '#059669' : '#d97706' }}
-            onClick={handleApprove}
-            disabled={approving}
-          >
+          <button className="btn" style={{ background: isApproved ? '#d1fae5' : '#fef3c7', color: isApproved ? '#059669' : '#d97706' }}
+            onClick={handleApprove} disabled={approving}>
             {isApproved ? '✅ Approved' : '⏳ Pending Approval'}
           </button>
           <a href="https://expooutfitters.com" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
@@ -75,9 +64,28 @@ export default function EventDetailPage() {
           <div><strong>Status:</strong> <span className={`badge badge-${event.status}`}>{event.status}</span></div>
           {event.exhibitor && <div><strong>Exhibitor:</strong> {event.exhibitor}</div>}
           {event.booth && <div><strong>Booth:</strong> {event.booth}</div>}
-          <div><strong>Labor Type:</strong> {event.laborType}</div>
-          <div><strong>Region:</strong> {event.region || 'San Diego'}</div>
-          <div><strong>Staffing:</strong> {accepted.length} / {event.laborCount} filled</div>
+          <div><strong>Region:</strong> {event.region}</div>
+        </div>
+
+        {/* Staff Requirements */}
+        <div style={{ marginBottom: '1rem' }}>
+          <strong>Staff Requirements:</strong>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+            {event.requirements?.map((req) => {
+              const accepted = event.assignments.filter(
+                (a) => a.requirementId === req.id && a.status === 'accepted'
+              ).length;
+              return (
+                <span key={req.id} style={{
+                  background: accepted >= req.laborCount ? '#d1fae5' : '#fef3c7',
+                  color: accepted >= req.laborCount ? '#059669' : '#d97706',
+                  padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 600
+                }}>
+                  {req.laborType}: {accepted}/{req.laborCount}
+                </span>
+              );
+            })}
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -96,31 +104,36 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-
-      <div className="card">
-        <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Dispatch Log</h2>
-        {event.assignments.length === 0 && (
-          <p style={{ color: '#888', fontSize: '0.875rem' }}>
-            No dispatches yet. {event.status === 'draft' && 'Click "Dispatch SMS" to send texts to laborers.'}
-          </p>
-        )}
-        {event.assignments.map((a) => (
-          <div className="assignment-item" key={a.id}>
-            <div>
-              <strong>{a.laborer.name}</strong>
-              <div style={{ fontSize: '0.8rem', color: '#666' }}>{a.laborer.phone} &mdash; {a.laborer.jobType}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ color: STATUS_COLOR[a.status], fontWeight: 600, fontSize: '0.875rem' }}>
-                {a.status.toUpperCase()}
-              </span>
-              <div style={{ fontSize: '0.75rem', color: '#999' }}>
-                Sent: {new Date(a.sentAt).toLocaleString()}
+      {/* Dispatch Log grouped by requirement */}
+      {event.requirements?.map((req) => {
+        const reqAssignments = event.assignments.filter((a) => a.requirementId === req.id);
+        return (
+          <div className="card" key={req.id}>
+            <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>
+              {req.laborType} — {reqAssignments.filter(a => a.status === 'accepted').length}/{req.laborCount} filled
+            </h2>
+            {reqAssignments.length === 0 && (
+              <p style={{ color: '#888', fontSize: '0.875rem' }}>No dispatches yet.</p>
+            )}
+            {reqAssignments.map((a) => (
+              <div className="assignment-item" key={a.id}>
+                <div>
+                  <strong>{a.laborer.name}</strong>
+                  <div style={{ fontSize: '0.8rem', color: '#666' }}>{a.laborer.phone}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ color: STATUS_COLOR[a.status], fontWeight: 600, fontSize: '0.875rem' }}>
+                    {a.status.toUpperCase()}
+                  </span>
+                  <div style={{ fontSize: '0.75rem', color: '#999' }}>
+                    Sent: {new Date(a.sentAt).toLocaleString()}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

@@ -25,7 +25,7 @@ export default function EventsPage() {
 
   const filtered = events.filter((e) => {
     if (filterRegion && (e.region || 'San Diego') !== filterRegion) return false;
-    if (filterLaborType && e.laborType !== filterLaborType) return false;
+    if (filterLaborType && !e.requirements?.some((r) => r.laborType === filterLaborType)) return false;
     return true;
   });
 
@@ -87,8 +87,9 @@ export default function EventsPage() {
                   {(event.approval ?? 'pending') === 'approved' ? '✅ Approved' : '⏳ Pending'}
                 </span>
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                {event.venue} &mdash; {event.region || 'San Diego'} &mdash; {event.laborType} &mdash; {accepted}/{event.laborCount} staffed
+                      <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                {event.venue} &mdash; {event.region || 'San Diego'} &mdash;{' '}
+                {event.requirements?.map((r) => `${r.laborType} (${r.laborCount})`).join(', ')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>

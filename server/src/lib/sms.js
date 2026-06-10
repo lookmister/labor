@@ -1,4 +1,4 @@
-export function buildJobMessage(laborer, event) {
+export function buildJobMessage(laborer, event, requirement) {
   const install = JSON.parse(event.installDates)
     .map((d) => `${d.date} @ ${d.time}`)
     .join('\n');
@@ -8,7 +8,8 @@ export function buildJobMessage(laborer, event) {
 
   const firstName = laborer.name.split(' ')[0];
 
-  return `Good morning ${firstName}. I want to put this on your radar for ${laborer.jobType} position for a show at ${event.venue}:
+  const role = requirement?.laborType || laborer.jobType;
+  return `Good morning ${firstName}. I want to put this on your radar for ${role} position for a show at ${event.venue}:
 
 Show name: ${event.name}
 Venue: ${event.venue}${event.exhibitor ? `\nExhibitor: ${event.exhibitor}` : ''}${event.booth ? `\nBooth: ${event.booth}` : ''}

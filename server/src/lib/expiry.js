@@ -30,7 +30,7 @@ export async function expireStaleOffers() {
     ).catch(() => {}); // don't crash if SMS fails
 
     // Dispatch to next available laborer
-    await dispatchNext(assignment.eventId);
+    await dispatchNext(assignment.eventId, assignment.requirementId);
   }
 
   if (stale.length > 0) {

@@ -8,43 +8,53 @@ datasource db {
 }
 
 model Event {
-  id             Int      @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   name           String
   venue          String
   exhibitor      String?
   booth          String?
-  installDates   String   // JSON array of {date, time} objects
-  dismantleDates String   // JSON array of {date, time} objects
-  laborType      String
-  laborCount     Int
-  region         String   @default("San Diego")
-  status         String   @default("draft")     // draft | dispatching | staffed
-  approval       String   @default("pending")   // pending | approved
-  createdAt      DateTime @default(now())
+  installDates   String
+  dismantleDates String
+  region         String             @default("San Diego")
+  status         String             @default("draft")    // draft | dispatching | staffed
+  approval       String             @default("pending")  // pending | approved
+  createdAt      DateTime           @default(now())
+  requirements   LaborRequirement[]
   assignments    Assignment[]
 }
 
+model LaborRequirement {
+  id          Int          @id @default(autoincrement())
+  eventId     Int
+  laborType   String
+  laborCount  Int
+  event       Event        @relation(fields: [eventId], references: [id])
+  assignments Assignment[]
+}
+
 model Laborer {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   name        String
-  phone       String   @unique
+  phone       String       @unique
   email       String?
   rate        Float
   jobType     String
-  priority    String   @default("D")  // A | B | C | D | E | F | G
-  region      String   @default("San Diego")
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  priority    String       @default("D")
+  region      String       @default("San Diego")
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
   assignments Assignment[]
 }
 
 model Assignment {
-  id         Int      @id @default(autoincrement())
-  eventId    Int
-  laborerId  Int
-  status     String   @default("pending") // pending | accepted | rejected
-  sentAt     DateTime @default(now())
-  repliedAt  DateTime?
-  event      Event    @relation(fields: [eventId], references: [id])
-  laborer    Laborer  @relation(fields: [laborerId], references: [id])
+  id            Int              @id @default(autoincrement())
+  eventId       Int
+  laborerId     Int
+  requirementId Int
+  status        String           @default("pending") // pending | accepted | rejected | expired
+  sentAt        DateTime         @default(now())
+  repliedAt     DateTime?
+  event         Event            @relation(fields: [eventId], references: [id])
+  laborer       Laborer          @relation(fields: [laborerId], references: [id])
+  requirement   LaborRequirement @relation(fields: [requirementId], references: [id])
 }

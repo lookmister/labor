@@ -2,35 +2,39 @@ import { prisma } from './prisma.js';
 import { buildJobMessage, sendSms } from './sms.js';
 
 /**
- * Sends offers to fill all open slots simultaneously.
- * Called on dispatch button click.
+ * Dispatch all open slots across all requirements simultaneously.
  */
 export async function dispatchAll(eventId) {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    include: { assignments: true },
+    include: { requirements: true, assignments: true },
   });
-
   if (!event) return;
 
-  // Count how many slots are already filled or pending
-  const filledOrPending = event.assignments.filter(
+  await Promise.all(event.requirements.map((req) => dispatchRequirement(event, req)));
+  await prisma.event.update({ where: { id: eventId }, data: { status: 'dispatching' } });
+}
+
+/**
+ * Fill open slots for a single requirement.
+ */
+export async function dispatchRequirement(event, requirement) {
+  const existingForReq = await prisma.assignment.findMany({
+    where: { requirementId: requirement.id },
+  });
+
+  const filledOrPending = existingForReq.filter(
     (a) => a.status === 'accepted' || a.status === 'pending'
   ).length;
 
-  const slotsToFill = event.laborCount - filledOrPending;
+  const slotsToFill = requirement.laborCount - filledOrPending;
+  if (slotsToFill <= 0) return;
 
-  if (slotsToFill <= 0) {
-    await prisma.event.update({ where: { id: eventId }, data: { status: 'staffed' } });
-    return;
-  }
+  const contactedIds = existingForReq.map((a) => a.laborerId);
 
-  const contactedIds = event.assignments.map((a) => a.laborerId);
-
-  // Find enough laborers to fill all open slots at once
   const laborers = await prisma.laborer.findMany({
     where: {
-      jobType: event.laborType,
+      jobType: requirement.laborType,
       active: true,
       id: { notIn: contactedIds },
       ...(event.region ? { region: event.region } : {}),
@@ -39,46 +43,48 @@ export async function dispatchAll(eventId) {
     take: slotsToFill,
   });
 
-  if (laborers.length === 0) {
-    console.log(`No available laborers for event ${eventId}`);
-    return;
-  }
-
-  // Send all offers simultaneously
   await Promise.all(laborers.map(async (laborer) => {
     await prisma.assignment.create({
-      data: { eventId, laborerId: laborer.id, status: 'pending' },
+      data: { eventId: event.id, laborerId: laborer.id, requirementId: requirement.id, status: 'pending' },
     });
-    const message = buildJobMessage(laborer, event);
+    const message = buildJobMessage(laborer, event, requirement);
     await sendSms(laborer.phone, message);
-    console.log(`[dispatch] Sent offer to ${laborer.name} for event ${eventId}`);
+    console.log(`[dispatch] Sent ${requirement.laborType} offer to ${laborer.name}`);
   }));
-
-  await prisma.event.update({ where: { id: eventId }, data: { status: 'dispatching' } });
 }
 
 /**
- * Called after a rejection or expiry — fills just that one open slot.
+ * Called after a rejection/expiry — fills just that one slot for the same requirement.
  */
-export async function dispatchNext(eventId) {
+export async function dispatchNext(eventId, requirementId) {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    include: { assignments: true },
+    include: { requirements: true },
   });
-
   if (!event) return;
 
-  const acceptedCount = event.assignments.filter((a) => a.status === 'accepted').length;
-  if (acceptedCount >= event.laborCount) {
-    await prisma.event.update({ where: { id: eventId }, data: { status: 'staffed' } });
+  const requirement = event.requirements.find((r) => r.id === requirementId);
+  if (!requirement) return;
+
+  const existingForReq = await prisma.assignment.findMany({
+    where: { requirementId },
+  });
+
+  const acceptedCount = existingForReq.filter((a) => a.status === 'accepted').length;
+  if (acceptedCount >= requirement.laborCount) {
+    // Check if all requirements are fully staffed
+    const allStaffed = await checkAllStaffed(eventId);
+    if (allStaffed) {
+      await prisma.event.update({ where: { id: eventId }, data: { status: 'staffed' } });
+    }
     return;
   }
 
-  const contactedIds = event.assignments.map((a) => a.laborerId);
+  const contactedIds = existingForReq.map((a) => a.laborerId);
 
   const laborer = await prisma.laborer.findFirst({
     where: {
-      jobType: event.laborType,
+      jobType: requirement.laborType,
       active: true,
       id: { notIn: contactedIds },
       ...(event.region ? { region: event.region } : {}),
@@ -87,17 +93,28 @@ export async function dispatchNext(eventId) {
   });
 
   if (!laborer) {
-    console.log(`No more available laborers for event ${eventId}`);
+    console.log(`No more laborers for requirement ${requirementId}`);
     return;
   }
 
   await prisma.assignment.create({
-    data: { eventId, laborerId: laborer.id, status: 'pending' },
+    data: { eventId, laborerId: laborer.id, requirementId, status: 'pending' },
   });
 
-  const message = buildJobMessage(laborer, event);
+  const message = buildJobMessage(laborer, event, requirement);
   await sendSms(laborer.phone, message);
-  console.log(`[dispatch] Sent replacement offer to ${laborer.name} for event ${eventId}`);
+}
 
-  await prisma.event.update({ where: { id: eventId }, data: { status: 'dispatching' } });
+async function checkAllStaffed(eventId) {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    include: { requirements: true },
+  });
+  for (const req of event.requirements) {
+    const count = await prisma.assignment.count({
+      where: { requirementId: req.id, status: 'accepted' },
+    });
+    if (count < req.laborCount) return false;
+  }
+  return true;
 }
