@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { REGIONS, LABOR_TYPES } from '../constants.js';
 
 function statusBadge(status) {
   return <span className={`badge badge-${status}`}>{status}</span>;
@@ -9,6 +10,8 @@ function statusBadge(status) {
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterRegion, setFilterRegion] = useState('');
+  const [filterLaborType, setFilterLaborType] = useState('');
 
   useEffect(() => {
     api.getEvents().then(setEvents).finally(() => setLoading(false));
@@ -20,6 +23,12 @@ export default function EventsPage() {
     setEvents((ev) => ev.filter((e) => e.id !== id));
   }
 
+  const filtered = events.filter((e) => {
+    if (filterRegion && (e.region || 'San Diego') !== filterRegion) return false;
+    if (filterLaborType && e.laborType !== filterLaborType) return false;
+    return true;
+  });
+
   if (loading) return <p>Loading...</p>;
 
   return (
@@ -29,13 +38,44 @@ export default function EventsPage() {
         <Link to="/events/new" className="btn btn-primary">+ New Event</Link>
       </div>
 
-      {events.length === 0 && (
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <select
+          value={filterRegion}
+          onChange={(e) => setFilterRegion(e.target.value)}
+          style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid #d1d5db', fontSize: '0.875rem', minWidth: 160 }}
+        >
+          <option value="">All Regions</option>
+          {REGIONS.map((r) => <option key={r}>{r}</option>)}
+        </select>
+        <select
+          value={filterLaborType}
+          onChange={(e) => setFilterLaborType(e.target.value)}
+          style={{ padding: '0.4rem 0.75rem', borderRadius: 6, border: '1px solid #d1d5db', fontSize: '0.875rem', minWidth: 180 }}
+        >
+          <option value="">All Labor Types</option>
+          {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
+        </select>
+        {(filterRegion || filterLaborType) && (
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => { setFilterRegion(''); setFilterLaborType(''); }}
+          >
+            ✕ Clear Filters
+          </button>
+        )}
+        <span style={{ fontSize: '0.8rem', color: '#888', alignSelf: 'center' }}>
+          {filtered.length} of {events.length} events
+        </span>
+      </div>
+
+      {filtered.length === 0 && (
         <div className="card">
-          <p style={{ color: '#888' }}>No events yet. Create your first event to get started.</p>
+          <p style={{ color: '#888' }}>No events match the selected filters.</p>
         </div>
       )}
 
-      {events.map((event) => {
+      {filtered.map((event) => {
         const accepted = event.assignments.filter((a) => a.status === 'accepted').length;
         return (
           <div className="card" key={event.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -41,8 +41,8 @@ export default function EventDetailPage() {
   const installDates = JSON.parse(event.installDates);
   const dismantleDates = JSON.parse(event.dismantleDates);
   const accepted = event.assignments.filter((a) => a.status === 'accepted');
-  const canDispatch = isApproved && (event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount));
   const isApproved = (event.approval ?? 'pending') === 'approved';
+  const canDispatch = isApproved && (event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount));
 
   return (
     <div>
@@ -62,6 +62,9 @@ export default function EventDetailPage() {
           >
             {isApproved ? '✅ Approved' : '⏳ Pending Approval'}
           </button>
+          <a href="https://expooutfitters.com" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+            🎪 Custom Booth?
+          </a>
           <Link to="/" className="btn btn-secondary">← Back</Link>
         </div>
       </div>
@@ -93,20 +96,6 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Additional Services */}
-      <div className="card">
-        <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Additional Services</h2>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <a
-            href="https://expooutfitters.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-          >
-            🎪 Need a Custom Booth?
-          </a>
-        </div>
-      </div>
 
       <div className="card">
         <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Dispatch Log</h2>

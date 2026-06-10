@@ -21,5 +21,16 @@ app.use('/webhook', webhookRouter);
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
 
+// Debug: test SMS from production server
+app.get('/api/test-sms', async (req, res) => {
+  const { sendSms } = await import('./lib/sms.js');
+  try {
+    const result = await sendSms('+16198920160', 'Test from Railway server');
+    res.json({ ok: true, result });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Server running on port ${port}`));
