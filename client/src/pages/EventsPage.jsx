@@ -43,8 +43,8 @@ export default function EventsPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
                 <strong style={{ fontSize: '1rem' }}>{event.name}</strong>
                 {statusBadge(event.status)}
-                <span className={`badge ${event.approval === 'approved' ? 'badge-staffed' : 'badge-dispatching'}`}>
-                  {event.approval === 'approved' ? '✅ Approved' : '⏳ Pending'}
+                <span className={`badge ${(event.approval ?? 'pending') === 'approved' ? 'badge-staffed' : 'badge-dispatching'}`}>
+                  {(event.approval ?? 'pending') === 'approved' ? '✅ Approved' : '⏳ Pending'}
                 </span>
               </div>
               <div style={{ fontSize: '0.85rem', color: '#666' }}>

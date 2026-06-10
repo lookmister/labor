@@ -81,7 +81,7 @@ export default function NewEventPage() {
         <h1>New Event</h1>
       </div>
       <div className="card">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => handleSubmit(e, false)}>
           <div className="form-row">
             <div className="form-group">
               <label>Show Name *</label>
@@ -121,12 +121,8 @@ export default function NewEventPage() {
           <DateSection label="Dismantle Dates & Times" section="dismantleDates" />
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" disabled={saving} onClick={(e) => handleSubmit(e, false)}
-              title="Save as draft — approve the event first before dispatching">
+            <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? 'Saving...' : 'Create Event'}
-            </button>
-            <button type="submit" className="btn btn-secondary" disabled={saving} onClick={(e) => handleSubmit(e, false)}>
-              Save
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           </div>
