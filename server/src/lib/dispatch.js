@@ -43,6 +43,21 @@ export async function dispatchRequirement(event, requirement) {
     take: slotsToFill,
   });
 
+  if (laborers.length < slotsToFill) {
+    // Couldn't find enough laborers — flag the requirement
+    await prisma.laborRequirement.update({
+      where: { id: requirement.id },
+      data: { flagged: true },
+    });
+    console.log(`[dispatch] ⚠️ Not enough ${requirement.laborType} laborers for requirement ${requirement.id} (need ${slotsToFill}, found ${laborers.length})`);
+  } else {
+    // Clear any previous flag
+    await prisma.laborRequirement.update({
+      where: { id: requirement.id },
+      data: { flagged: false },
+    });
+  }
+
   await Promise.all(laborers.map(async (laborer) => {
     await prisma.assignment.create({
       data: { eventId: event.id, laborerId: laborer.id, requirementId: requirement.id, status: 'pending' },
@@ -93,9 +108,19 @@ export async function dispatchNext(eventId, requirementId) {
   });
 
   if (!laborer) {
-    console.log(`No more laborers for requirement ${requirementId}`);
+    console.log(`[dispatch] ⚠️ No more laborers available for requirement ${requirementId}`);
+    await prisma.laborRequirement.update({
+      where: { id: requirementId },
+      data: { flagged: true },
+    });
     return;
   }
+
+  // Clear flag since we found someone
+  await prisma.laborRequirement.update({
+    where: { id: requirementId },
+    data: { flagged: false },
+  });
 
   await prisma.assignment.create({
     data: { eventId, laborerId: laborer.id, requirementId, status: 'pending' },

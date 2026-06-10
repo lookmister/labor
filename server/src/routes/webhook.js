@@ -33,6 +33,11 @@ async function handleInbound(req, res) {
       where: { id: assignment.id },
       data: { status: 'accepted', repliedAt: new Date() },
     });
+    // Clear the staffing flag — someone accepted
+    await prisma.laborRequirement.update({
+      where: { id: assignment.requirementId },
+      data: { flagged: false },
+    });
     // Check if this requirement is fully staffed
     const acceptedForReq = await prisma.assignment.count({
       where: { requirementId: assignment.requirementId, status: 'accepted' },

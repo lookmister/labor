@@ -91,6 +91,11 @@ export default function EventsPage() {
                 {event.venue} &mdash; {event.region || 'San Diego'} &mdash;{' '}
                 {event.requirements?.map((r) => `${r.laborType} (${r.laborCount})`).join(', ')}
               </div>
+              {event.requirements?.some((r) => r.flagged) && (
+                <div style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 600, marginTop: '0.2rem' }}>
+                  ⚠️ Understaffed — {event.requirements.filter((r) => r.flagged).map((r) => r.laborType).join(', ')}
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <Link to={`/events/${event.id}`} className="btn btn-secondary btn-sm">View</Link>

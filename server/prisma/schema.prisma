@@ -28,6 +28,7 @@ model LaborRequirement {
   laborCount     Int
   installDates   String       @default("[]")
   dismantleDates String       @default("[]")
+  flagged        Boolean      @default(false) // true = ran out of laborers to contact
   event          Event        @relation(fields: [eventId], references: [id])
   assignments    Assignment[]
 }

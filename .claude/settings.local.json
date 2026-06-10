@@ -44,7 +44,13 @@
       "Bash(curl -s -X POST https://labor-production.up.railway.app/api/events -H 'Content-Type: application/json' -d '{\"name\":\"San Diego Food & Wine Festival\",\"venue\":\"Del Mar Fairgrounds\",\"exhibitor\":\"Sysco Foods\",\"booth\":\"E12\",\"laborType\":\"General Labor\",\"laborCount\":5,\"region\":\"San Diego\",\"installDates\":[{\"date\":\"2026-09-10\",\"time\":\"09:00\"}],\"dismantleDates\":[{\"date\":\"2026-09-12\",\"time\":\"10:00\"}],\"approval\":\"approved\"}')",
       "Bash(python3 -c \"import json,sys; e=json.load\\(sys.stdin\\); print\\(e['id'], e['name'], e['approval']\\)\")",
       "Bash(curl -s https://labor-production.up.railway.app/api/test-sms)",
-      "Bash(python3 -c \"import json,sys; [print\\(e['id']\\) for e in json.load\\(sys.stdin\\)]\")"
+      "Bash(python3 -c \"import json,sys; [print\\(e['id']\\) for e in json.load\\(sys.stdin\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('requirements[0] keys:', list\\(d[0]['requirements'][0].keys\\(\\)\\) if d and d[0]['requirements'] else 'no reqs'\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); r=d[0]['requirements'] if d else []; print\\('installDates in req:', 'installDates' in r[0] if r else 'no reqs'\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('event keys:', list\\(d[0].keys\\(\\)\\) if d else 'no events'\\)\")",
+      "Bash(curl -s -X POST https://labor-production.up.railway.app/api/events -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Event 5:', d.get\\('id'\\), d.get\\('name'\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Event 10:', d.get\\('id'\\), d.get\\('name'\\)\\)\")"
     ]
   }
 }

@@ -81,7 +81,7 @@ export default function EventDetailPage() {
                 borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '0.75rem',
                 background: filled ? '#f0fdf4' : '#fffbeb',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                   <span style={{
                     fontWeight: 700, fontSize: '0.95rem',
                     color: filled ? '#059669' : '#d97706',
@@ -95,6 +95,15 @@ export default function EventDetailPage() {
                   }}>
                     {accepted}/{req.laborCount} filled
                   </span>
+                  {req.flagged && !filled && (
+                    <span style={{
+                      background: '#fee2e2', color: '#dc2626',
+                      padding: '0.15rem 0.6rem', borderRadius: 999, fontSize: '0.78rem', fontWeight: 600,
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
+                    }}>
+                      ⚠️ Not enough staff — add more laborers
+                    </span>
+                  )}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.82rem', color: '#555' }}>
                   <div>
