@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
 
-const STATUS_COLOR = { pending: '#d97706', accepted: '#059669', rejected: '#dc2626' };
+const STATUS_COLOR = { pending: '#d97706', accepted: '#059669', rejected: '#dc2626', expired: '#9ca3af' };
 
 export default function EventDetailPage() {
   const { id } = useParams();

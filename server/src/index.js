@@ -21,6 +21,9 @@ app.use('/webhook', webhookRouter);
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
 
+import { startExpiryWorker } from './lib/expiry.js';
+startExpiryWorker();
+
 // Debug: test SMS from production server
 app.get('/api/test-sms', async (req, res) => {
   const { sendSms } = await import('./lib/sms.js');
