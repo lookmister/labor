@@ -50,7 +50,12 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('event keys:', list\\(d[0].keys\\(\\)\\) if d else 'no events'\\)\")",
       "Bash(curl -s -X POST https://labor-production.up.railway.app/api/events -H 'Content-Type: application/json' -d '{ *)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Event 5:', d.get\\('id'\\), d.get\\('name'\\)\\)\")",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Event 10:', d.get\\('id'\\), d.get\\('name'\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Event 10:', d.get\\('id'\\), d.get\\('name'\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('build script:', d.get\\('scripts',{}\\).get\\('build'\\)\\); print\\('vite version:', d.get\\('devDependencies',{}\\).get\\('vite','?'\\)\\)\")",
+      "mcp__d845c6ca-482a-4177-9a31-779059c1e8a3__netlify-team-services-reader",
+      "Bash(netlify --version)",
+      "Bash(npm run *)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 netlify deploy --dir=dist --prod)"
     ]
   }
 }
