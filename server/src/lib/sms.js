@@ -19,7 +19,7 @@ ${install}
 DISMANTLE:
 ${dismantle}
 
-Reply YES to accept or NO to decline.`;
+You have 12 hours to accept this job. Reply YES to accept or NO to decline.`;
 }
 
 export async function sendSms(to, body) {
