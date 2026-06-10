@@ -32,8 +32,6 @@ export default function EventDetailPage() {
 
   if (!event) return <p>Loading...</p>;
 
-  const installDates = JSON.parse(event.installDates);
-  const dismantleDates = JSON.parse(event.dismantleDates);
   const isApproved = (event.approval ?? 'pending') === 'approved';
   const canDispatch = isApproved && event.status !== 'staffed';
 
@@ -67,40 +65,60 @@ export default function EventDetailPage() {
           <div><strong>Region:</strong> {event.region}</div>
         </div>
 
-        {/* Staff Requirements */}
-        <div style={{ marginBottom: '1rem' }}>
-          <strong>Staff Requirements:</strong>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-            {event.requirements?.map((req) => {
-              const accepted = event.assignments.filter(
-                (a) => a.requirementId === req.id && a.status === 'accepted'
-              ).length;
-              return (
-                <span key={req.id} style={{
-                  background: accepted >= req.laborCount ? '#d1fae5' : '#fef3c7',
-                  color: accepted >= req.laborCount ? '#059669' : '#d97706',
-                  padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 600
-                }}>
-                  {req.laborType}: {accepted}/{req.laborCount}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div>
-            <strong>Install:</strong>
-            <ul style={{ marginTop: '0.25rem', paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
-              {installDates.map((d, i) => <li key={i}>{d.date} @ {d.time}</li>)}
-            </ul>
-          </div>
-          <div>
-            <strong>Dismantle:</strong>
-            <ul style={{ marginTop: '0.25rem', paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
-              {dismantleDates.map((d, i) => <li key={i}>{d.date} @ {d.time}</li>)}
-            </ul>
-          </div>
+        {/* Staff Requirements with per-role dates */}
+        <div>
+          <strong style={{ display: 'block', marginBottom: '0.75rem' }}>Staff Requirements:</strong>
+          {event.requirements?.map((req) => {
+            const accepted = event.assignments.filter(
+              (a) => a.requirementId === req.id && a.status === 'accepted'
+            ).length;
+            const installDates = req.installDates ? JSON.parse(req.installDates) : [];
+            const dismantleDates = req.dismantleDates ? JSON.parse(req.dismantleDates) : [];
+            const filled = accepted >= req.laborCount;
+            return (
+              <div key={req.id} style={{
+                border: `1px solid ${filled ? '#a7f3d0' : '#fde68a'}`,
+                borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '0.75rem',
+                background: filled ? '#f0fdf4' : '#fffbeb',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  <span style={{
+                    fontWeight: 700, fontSize: '0.95rem',
+                    color: filled ? '#059669' : '#d97706',
+                  }}>
+                    {req.laborType}
+                  </span>
+                  <span style={{
+                    background: filled ? '#d1fae5' : '#fef3c7',
+                    color: filled ? '#059669' : '#d97706',
+                    padding: '0.15rem 0.6rem', borderRadius: 999, fontSize: '0.78rem', fontWeight: 600,
+                  }}>
+                    {accepted}/{req.laborCount} filled
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.82rem', color: '#555' }}>
+                  <div>
+                    <span style={{ fontWeight: 600 }}>📥 Install:</span>
+                    {installDates.length === 0
+                      ? <span style={{ color: '#aaa' }}> TBD</span>
+                      : <ul style={{ margin: '0.2rem 0 0 1rem', padding: 0 }}>
+                          {installDates.map((d, i) => <li key={i}>{d.date} @ {d.time}</li>)}
+                        </ul>
+                    }
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: 600 }}>📤 Dismantle:</span>
+                    {dismantleDates.length === 0
+                      ? <span style={{ color: '#aaa' }}> TBD</span>
+                      : <ul style={{ margin: '0.2rem 0 0 1rem', padding: 0 }}>
+                          {dismantleDates.map((d, i) => <li key={i}>{d.date} @ {d.time}</li>)}
+                        </ul>
+                    }
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

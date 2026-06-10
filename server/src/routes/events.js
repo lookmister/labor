@@ -21,16 +21,19 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, venue, exhibitor, booth, installDates, dismantleDates, region, requirements } = req.body;
+  const { name, venue, exhibitor, booth, region, requirements } = req.body;
 
   const event = await prisma.event.create({
     data: {
       name, venue, exhibitor, booth,
-      installDates: JSON.stringify(installDates),
-      dismantleDates: JSON.stringify(dismantleDates),
       region: region || 'San Diego',
       requirements: {
-        create: requirements.map((r) => ({ laborType: r.laborType, laborCount: Number(r.laborCount) })),
+        create: requirements.map((r) => ({
+          laborType: r.laborType,
+          laborCount: Number(r.laborCount),
+          installDates: JSON.stringify(r.installDates || []),
+          dismantleDates: JSON.stringify(r.dismantleDates || []),
+        })),
       },
     },
     include,

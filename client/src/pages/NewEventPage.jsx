@@ -4,7 +4,14 @@ import { api } from '../api.js';
 import { LABOR_TYPES, REGIONS } from '../constants.js';
 
 function emptyDate() { return { date: '', time: '' }; }
-function emptyReq() { return { laborType: LABOR_TYPES[0], laborCount: 1 }; }
+function emptyReq() {
+  return {
+    laborType: LABOR_TYPES[0],
+    laborCount: 1,
+    installDates: [emptyDate()],
+    dismantleDates: [emptyDate()],
+  };
+}
 
 export default function NewEventPage() {
   const navigate = useNavigate();
@@ -12,23 +19,10 @@ export default function NewEventPage() {
   const [form, setForm] = useState({
     name: '', venue: '', exhibitor: '', booth: '',
     region: 'San Diego',
-    installDates: [emptyDate()],
-    dismantleDates: [emptyDate()],
     requirements: [emptyReq()],
   });
 
   function set(field, value) { setForm((f) => ({ ...f, [field]: value })); }
-
-  function updateDateRow(section, index, key, value) {
-    setForm((f) => {
-      const rows = [...f[section]];
-      rows[index] = { ...rows[index], [key]: value };
-      return { ...f, [section]: rows };
-    });
-  }
-
-  function addDateRow(section) { setForm((f) => ({ ...f, [section]: [...f[section], emptyDate()] })); }
-  function removeDateRow(section, index) { setForm((f) => ({ ...f, [section]: f[section].filter((_, i) => i !== index) })); }
 
   function updateReq(index, key, value) {
     setForm((f) => {
@@ -37,6 +31,33 @@ export default function NewEventPage() {
       return { ...f, requirements: reqs };
     });
   }
+
+  function updateReqDate(reqIndex, section, dateIndex, key, value) {
+    setForm((f) => {
+      const reqs = [...f.requirements];
+      const rows = [...reqs[reqIndex][section]];
+      rows[dateIndex] = { ...rows[dateIndex], [key]: value };
+      reqs[reqIndex] = { ...reqs[reqIndex], [section]: rows };
+      return { ...f, requirements: reqs };
+    });
+  }
+
+  function addReqDate(reqIndex, section) {
+    setForm((f) => {
+      const reqs = [...f.requirements];
+      reqs[reqIndex] = { ...reqs[reqIndex], [section]: [...reqs[reqIndex][section], emptyDate()] };
+      return { ...f, requirements: reqs };
+    });
+  }
+
+  function removeReqDate(reqIndex, section, dateIndex) {
+    setForm((f) => {
+      const reqs = [...f.requirements];
+      reqs[reqIndex] = { ...reqs[reqIndex], [section]: reqs[reqIndex][section].filter((_, i) => i !== dateIndex) };
+      return { ...f, requirements: reqs };
+    });
+  }
+
   function addReq() { setForm((f) => ({ ...f, requirements: [...f.requirements, emptyReq()] })); }
   function removeReq(index) { setForm((f) => ({ ...f, requirements: f.requirements.filter((_, i) => i !== index) })); }
 
@@ -50,28 +71,6 @@ export default function NewEventPage() {
       alert('Error creating event: ' + err.message);
       setSaving(false);
     }
-  }
-
-  function DateSection({ label, section }) {
-    return (
-      <div className="form-group">
-        <label>{label}</label>
-        <div className="date-rows">
-          {form[section].map((row, i) => (
-            <div className="date-row" key={i}>
-              <input type="date" value={row.date} onChange={(e) => updateDateRow(section, i, 'date', e.target.value)} />
-              <input type="time" value={row.time} onChange={(e) => updateDateRow(section, i, 'time', e.target.value)} />
-              {form[section].length > 1 && (
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => removeDateRow(section, i)}>✕</button>
-              )}
-            </div>
-          ))}
-        </div>
-        <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '0.5rem', width: 'fit-content' }} onClick={() => addDateRow(section)}>
-          + Add date
-        </button>
-      </div>
-    );
   }
 
   return (
@@ -106,30 +105,96 @@ export default function NewEventPage() {
             </select>
           </div>
 
-          {/* Labor Requirements */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
+          {/* Staff Requirements — each with their own install/dismantle dates */}
+          <div className="form-group" style={{ marginBottom: '0.5rem' }}>
             <label>Staff Requirements</label>
           </div>
+
           {form.requirements.map((req, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px auto', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-              <select value={req.laborType} onChange={(e) => updateReq(i, 'laborType', e.target.value)}
-                style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}>
-                {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
-              </select>
-              <input type="number" min="1" value={req.laborCount} onChange={(e) => updateReq(i, 'laborCount', Number(e.target.value))}
-                style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}
-                placeholder="# needed" />
-              {form.requirements.length > 1 && (
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => removeReq(i)}>✕</button>
-              )}
+            <div key={i} style={{
+              border: '1px solid #e5e7eb', borderRadius: 8, padding: '1rem',
+              marginBottom: '1rem', background: '#fafafa',
+            }}>
+              {/* Role row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px auto', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <select
+                  value={req.laborType}
+                  onChange={(e) => updateReq(i, 'laborType', e.target.value)}
+                  style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}
+                >
+                  {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
+                </select>
+                <input
+                  type="number" min="1" value={req.laborCount}
+                  onChange={(e) => updateReq(i, 'laborCount', Number(e.target.value))}
+                  style={{ padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9rem' }}
+                  placeholder="# needed"
+                />
+                {form.requirements.length > 1 && (
+                  <button type="button" className="btn btn-danger btn-sm" onClick={() => removeReq(i)}>✕</button>
+                )}
+              </div>
+
+              {/* Install dates for this role */}
+              <div style={{ marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#555', marginBottom: '0.35rem' }}>
+                  📥 Install Dates &amp; Times
+                </div>
+                {req.installDates.map((row, di) => (
+                  <div key={di} style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.3rem', alignItems: 'center' }}>
+                    <input type="date" value={row.date}
+                      onChange={(e) => updateReqDate(i, 'installDates', di, 'date', e.target.value)}
+                      style={{ padding: '0.35rem 0.5rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.85rem' }}
+                    />
+                    <input type="time" value={row.time}
+                      onChange={(e) => updateReqDate(i, 'installDates', di, 'time', e.target.value)}
+                      style={{ padding: '0.35rem 0.5rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.85rem' }}
+                    />
+                    {req.installDates.length > 1 && (
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => removeReqDate(i, 'installDates', di)}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className="btn btn-secondary btn-sm"
+                  style={{ marginTop: '0.25rem', width: 'fit-content' }}
+                  onClick={() => addReqDate(i, 'installDates')}>
+                  + Add date
+                </button>
+              </div>
+
+              {/* Dismantle dates for this role */}
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#555', marginBottom: '0.35rem' }}>
+                  📤 Dismantle Dates &amp; Times
+                </div>
+                {req.dismantleDates.map((row, di) => (
+                  <div key={di} style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.3rem', alignItems: 'center' }}>
+                    <input type="date" value={row.date}
+                      onChange={(e) => updateReqDate(i, 'dismantleDates', di, 'date', e.target.value)}
+                      style={{ padding: '0.35rem 0.5rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.85rem' }}
+                    />
+                    <input type="time" value={row.time}
+                      onChange={(e) => updateReqDate(i, 'dismantleDates', di, 'time', e.target.value)}
+                      style={{ padding: '0.35rem 0.5rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.85rem' }}
+                    />
+                    {req.dismantleDates.length > 1 && (
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => removeReqDate(i, 'dismantleDates', di)}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className="btn btn-secondary btn-sm"
+                  style={{ marginTop: '0.25rem', width: 'fit-content' }}
+                  onClick={() => addReqDate(i, 'dismantleDates')}>
+                  + Add date
+                </button>
+              </div>
             </div>
           ))}
-          <button type="button" className="btn btn-secondary btn-sm" style={{ marginBottom: '1rem', width: 'fit-content' }} onClick={addReq}>
+
+          <button type="button" className="btn btn-secondary btn-sm"
+            style={{ marginBottom: '1.25rem', width: 'fit-content' }} onClick={addReq}>
             + Add Staff Type
           </button>
-
-          <DateSection label="Install Dates & Times" section="installDates" />
-          <DateSection label="Dismantle Dates & Times" section="dismantleDates" />
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Create Event'}</button>

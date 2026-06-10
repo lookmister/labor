@@ -13,8 +13,6 @@ model Event {
   venue          String
   exhibitor      String?
   booth          String?
-  installDates   String
-  dismantleDates String
   region         String             @default("San Diego")
   status         String             @default("draft")    // draft | dispatching | staffed
   approval       String             @default("pending")  // pending | approved
@@ -24,12 +22,14 @@ model Event {
 }
 
 model LaborRequirement {
-  id          Int          @id @default(autoincrement())
-  eventId     Int
-  laborType   String
-  laborCount  Int
-  event       Event        @relation(fields: [eventId], references: [id])
-  assignments Assignment[]
+  id             Int          @id @default(autoincrement())
+  eventId        Int
+  laborType      String
+  laborCount     Int
+  installDates   String       @default("[]")
+  dismantleDates String       @default("[]")
+  event          Event        @relation(fields: [eventId], references: [id])
+  assignments    Assignment[]
 }
 
 model Laborer {

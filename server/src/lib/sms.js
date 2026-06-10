@@ -1,10 +1,17 @@
 export function buildJobMessage(laborer, event, requirement) {
-  const install = JSON.parse(event.installDates)
-    .map((d) => `${d.date} @ ${d.time}`)
-    .join('\n');
-  const dismantle = JSON.parse(event.dismantleDates)
-    .map((d) => `${d.date} @ ${d.time}`)
-    .join('\n');
+  const installSrc = requirement?.installDates
+    ? JSON.parse(requirement.installDates)
+    : [];
+  const dismantleSrc = requirement?.dismantleDates
+    ? JSON.parse(requirement.dismantleDates)
+    : [];
+
+  const install = installSrc.length
+    ? installSrc.map((d) => `${d.date} @ ${d.time}`).join('\n')
+    : 'TBD';
+  const dismantle = dismantleSrc.length
+    ? dismantleSrc.map((d) => `${d.date} @ ${d.time}`).join('\n')
+    : 'TBD';
 
   const firstName = laborer.name.split(' ')[0];
 
