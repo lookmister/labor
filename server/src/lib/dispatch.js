@@ -30,6 +30,7 @@ export async function dispatchNext(eventId) {
       jobType: event.laborType,
       active: true,
       id: { notIn: contactedIds },
+      ...(event.region ? { region: event.region } : {}),
     },
     orderBy: { priority: 'asc' }, // A before B before C, etc.
   });

@@ -17,6 +17,7 @@ model Event {
   dismantleDates String   // JSON array of {date, time} objects
   laborType      String
   laborCount     Int
+  region         String   @default("San Diego")
   status         String   @default("draft")     // draft | dispatching | staffed
   approval       String   @default("pending")   // pending | approved
   createdAt      DateTime @default(now())

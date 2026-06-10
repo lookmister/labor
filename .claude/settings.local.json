@@ -25,7 +25,9 @@
       "Bash(echo \"Exit: $?\")",
       "Bash(curl -s https://labor-production.up.railway.app/api/events)",
       "Bash(python3 -c ' *)",
-      "Bash(curl -s https://labor-production.up.railway.app/api/laborers)"
+      "Bash(curl -s https://labor-production.up.railway.app/api/laborers)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma generate)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma db push --force-reset)"
     ]
   }
 }

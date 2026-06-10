@@ -48,7 +48,7 @@ export default function EventsPage() {
                 </span>
               </div>
               <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                {event.venue} &mdash; {event.laborType} &mdash; {accepted}/{event.laborCount} staffed
+                {event.venue} &mdash; {event.region || 'San Diego'} &mdash; {event.laborType} &mdash; {accepted}/{event.laborCount} staffed
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -73,6 +73,7 @@ export default function EventDetailPage() {
           {event.exhibitor && <div><strong>Exhibitor:</strong> {event.exhibitor}</div>}
           {event.booth && <div><strong>Booth:</strong> {event.booth}</div>}
           <div><strong>Labor Type:</strong> {event.laborType}</div>
+          <div><strong>Region:</strong> {event.region || 'San Diego'}</div>
           <div><strong>Staffing:</strong> {accepted.length} / {event.laborCount} filled</div>
         </div>
 

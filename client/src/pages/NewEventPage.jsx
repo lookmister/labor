@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { LABOR_TYPES } from '../constants.js';
+import { LABOR_TYPES, REGIONS } from '../constants.js';
 
 function emptyDate() {
   return { date: '', time: '' };
@@ -17,6 +17,7 @@ export default function NewEventPage() {
     booth: '',
     laborType: LABOR_TYPES[0],
     laborCount: 1,
+    region: 'San Diego',
     installDates: [emptyDate()],
     dismantleDates: [emptyDate()],
   });
@@ -114,6 +115,15 @@ export default function NewEventPage() {
             <div className="form-group">
               <label>Number of Laborers *</label>
               <input type="number" min="1" required value={form.laborCount} onChange={(e) => set('laborCount', Number(e.target.value))} />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Region *</label>
+              <select value={form.region} onChange={(e) => set('region', e.target.value)}>
+                {REGIONS.map((r) => <option key={r}>{r}</option>)}
+              </select>
             </div>
           </div>
 
