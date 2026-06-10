@@ -31,6 +31,7 @@ export async function dispatchNext(eventId) {
       active: true,
       id: { notIn: contactedIds },
     },
+    orderBy: { priority: 'asc' }, // A before B before C, etc.
   });
 
   if (!laborer) {

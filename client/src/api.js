@@ -15,6 +15,7 @@ export const api = {
   getEvent: (id) => req(`/api/events/${id}`),
   createEvent: (data) => req('/api/events', { method: 'POST', body: JSON.stringify(data) }),
   dispatchEvent: (id) => req(`/api/events/${id}/dispatch`, { method: 'POST' }),
+  approveEvent: (id) => req(`/api/events/${id}/approve`, { method: 'POST' }),
   deleteEvent: (id) => req(`/api/events/${id}`, { method: 'DELETE' }),
 
   // Laborers

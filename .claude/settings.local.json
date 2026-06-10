@@ -24,7 +24,8 @@
       "Bash(node -e ' *)",
       "Bash(echo \"Exit: $?\")",
       "Bash(curl -s https://labor-production.up.railway.app/api/events)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s https://labor-production.up.railway.app/api/laborers)"
     ]
   }
 }

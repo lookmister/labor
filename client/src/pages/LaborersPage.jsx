@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
-import { LABOR_TYPES } from '../constants.js';
+import { LABOR_TYPES, PRIORITY_LEVELS, REGIONS } from '../constants.js';
 
-const EMPTY = { name: '', phone: '', email: '', rate: '', jobType: LABOR_TYPES[0] };
+const EMPTY = { name: '', phone: '', email: '', rate: '', jobType: LABOR_TYPES[0], priority: 'D', region: 'San Diego' };
 
 export default function LaborersPage() {
   const [laborers, setLaborers] = useState([]);
@@ -26,14 +26,22 @@ export default function LaborersPage() {
       setEditing(null);
     } else {
       const created = await api.createLaborer(form);
-      setLaborers((l) => [...l, created]);
+      setLaborers((l) => [...l, created].sort((a, b) => a.priority.localeCompare(b.priority) || a.name.localeCompare(b.name)));
     }
     setForm(EMPTY);
   }
 
   function startEdit(laborer) {
     setEditing(laborer.id);
-    setForm({ name: laborer.name, phone: laborer.phone, email: laborer.email || '', rate: laborer.rate, jobType: laborer.jobType });
+    setForm({
+      name: laborer.name,
+      phone: laborer.phone,
+      email: laborer.email || '',
+      rate: laborer.rate,
+      jobType: laborer.jobType,
+      priority: laborer.priority || 'D',
+      region: laborer.region || 'San Diego',
+    });
   }
 
   async function handleDelete(id) {
@@ -71,10 +79,24 @@ export default function LaborersPage() {
               <input required type="number" min="0" step="0.01" value={form.rate} onChange={(e) => set('rate', e.target.value)} />
             </div>
           </div>
-          <div className="form-group" style={{ maxWidth: '280px' }}>
-            <label>Job Type *</label>
-            <select value={form.jobType} onChange={(e) => set('jobType', e.target.value)}>
-              {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Job Type *</label>
+              <select value={form.jobType} onChange={(e) => set('jobType', e.target.value)}>
+                {LABOR_TYPES.map((t) => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Region *</label>
+              <select value={form.region} onChange={(e) => set('region', e.target.value)}>
+                {REGIONS.map((r) => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-group" style={{ maxWidth: '200px' }}>
+            <label>Priority (A = highest)</label>
+            <select value={form.priority} onChange={(e) => set('priority', e.target.value)}>
+              {PRIORITY_LEVELS.map((p) => <option key={p}>{p}</option>)}
             </select>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -89,22 +111,32 @@ export default function LaborersPage() {
           <table>
             <thead>
               <tr>
+                <th>Priority</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Job Type</th>
+                <th>Region</th>
                 <th>Rate</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {laborers.length === 0 && (
-                <tr><td colSpan={5} style={{ color: '#888', textAlign: 'center' }}>No laborers yet.</td></tr>
+                <tr><td colSpan={7} style={{ color: '#888', textAlign: 'center' }}>No laborers yet.</td></tr>
               )}
               {laborers.map((l) => (
                 <tr key={l.id}>
+                  <td>
+                    <span style={{
+                      display: 'inline-block', width: 28, height: 28, borderRadius: '50%',
+                      background: '#1a1a2e', color: '#fff', textAlign: 'center',
+                      lineHeight: '28px', fontWeight: 700, fontSize: '0.8rem'
+                    }}>{l.priority || 'D'}</span>
+                  </td>
                   <td>{l.name}</td>
                   <td>{l.phone}</td>
                   <td>{l.jobType}</td>
+                  <td>{l.region || '—'}</td>
                   <td>${l.rate}/hr</td>
                   <td style={{ display: 'flex', gap: '0.5rem' }}>
                     <button className="btn btn-secondary btn-sm" onClick={() => startEdit(l)}>Edit</button>

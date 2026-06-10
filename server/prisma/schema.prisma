@@ -17,7 +17,8 @@ model Event {
   dismantleDates String   // JSON array of {date, time} objects
   laborType      String
   laborCount     Int
-  status         String   @default("draft") // draft | dispatching | staffed
+  status         String   @default("draft")     // draft | dispatching | staffed
+  approval       String   @default("pending")   // pending | approved
   createdAt      DateTime @default(now())
   assignments    Assignment[]
 }
@@ -29,6 +30,8 @@ model Laborer {
   email       String?
   rate        Float
   jobType     String
+  priority    String   @default("D")  // A | B | C | D | E | F | G
+  region      String   @default("San Diego")
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   assignments Assignment[]

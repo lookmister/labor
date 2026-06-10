@@ -8,6 +8,7 @@ export default function EventDetailPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [dispatching, setDispatching] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     api.getEvent(id).then(setEvent);
@@ -25,12 +26,23 @@ export default function EventDetailPage() {
     }
   }
 
+  async function handleApprove() {
+    setApproving(true);
+    try {
+      const updated = await api.approveEvent(id);
+      setEvent(updated);
+    } finally {
+      setApproving(false);
+    }
+  }
+
   if (!event) return <p>Loading...</p>;
 
   const installDates = JSON.parse(event.installDates);
   const dismantleDates = JSON.parse(event.dismantleDates);
   const accepted = event.assignments.filter((a) => a.status === 'accepted');
   const canDispatch = event.status === 'draft' || (event.status === 'dispatching' && accepted.length < event.laborCount);
+  const isApproved = event.approval === 'approved';
 
   return (
     <div>
@@ -42,6 +54,14 @@ export default function EventDetailPage() {
               {dispatching ? 'Dispatching...' : '📤 Dispatch SMS'}
             </button>
           )}
+          <button
+            className="btn"
+            style={{ background: isApproved ? '#d1fae5' : '#fef3c7', color: isApproved ? '#059669' : '#d97706' }}
+            onClick={handleApprove}
+            disabled={approving}
+          >
+            {isApproved ? '✅ Approved' : '⏳ Pending Approval'}
+          </button>
           <Link to="/" className="btn btn-secondary">← Back</Link>
         </div>
       </div>
@@ -69,6 +89,21 @@ export default function EventDetailPage() {
               {dismantleDates.map((d, i) => <li key={i}>{d.date} @ {d.time}</li>)}
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* Additional Services */}
+      <div className="card">
+        <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Additional Services</h2>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <a
+            href="https://expooutfitters.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+          >
+            🎪 Need a Custom Booth?
+          </a>
         </div>
       </div>
 

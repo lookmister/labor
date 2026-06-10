@@ -74,6 +74,19 @@ router.post('/:id/dispatch', async (req, res) => {
   res.json(updated);
 });
 
+// Toggle approval status
+router.post('/:id/approve', async (req, res) => {
+  const event = await prisma.event.findUnique({ where: { id: Number(req.params.id) } });
+  if (!event) return res.status(404).json({ error: 'Not found' });
+  const approval = event.approval === 'approved' ? 'pending' : 'approved';
+  const updated = await prisma.event.update({
+    where: { id: Number(req.params.id) },
+    data: { approval },
+    include: { assignments: { include: { laborer: true } } },
+  });
+  res.json(updated);
+});
+
 router.delete('/:id', async (req, res) => {
   await prisma.assignment.deleteMany({ where: { eventId: Number(req.params.id) } });
   await prisma.event.delete({ where: { id: Number(req.params.id) } });
